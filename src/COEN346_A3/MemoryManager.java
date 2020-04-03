@@ -6,22 +6,33 @@ import java.util.ArrayList;
 import java.util.concurrent.Semaphore;
 
 public class MemoryManager{
-    private int size; //size of the "memory module"
+    private int memorySize; //size of the "memory module"
     private int usedMemory; //amount of free memory in RAM. If full, then must write to swap(VM)
     private ArrayList<Frame> RAM = new ArrayList();
     Semaphore fileSemaphore = new Semaphore(1); //binary semaphore for file access
     Semaphore ramSemaphore = new Semaphore(1); //binary semaphore for ram access
     //todo: actually semaphore some shit
     MemoryManager(int memorySize){
-        this.size = memorySize;
-        for (int i = 0; i < this.size; i++) {
+        this.memorySize = memorySize;
+        for (int i = 0; i < this.memorySize; i++) {
             RAM.add(new Frame(-1, -1));
         }
+    }
+    MemoryManager() throws IOException {
+        File file = new File(Paths.get("memconfig.txt").toAbsolutePath().toString());
+        BufferedReader in = new BufferedReader(new FileReader(file));
+        String str;
+        int memsize = 0;
+        while ((str = in.readLine()) != null) {
+            memsize = Integer.parseInt(str);
+        }
+
+        this.memorySize = memsize;
     }
 
     public void memStore(int variableID, int value) throws IOException, InterruptedException {
         //first we check if the RAM is full
-        if(usedMemory == size) {//ram is full
+        if(usedMemory == memorySize) {//ram is full
             System.out.println("RAM is full!"); //todo: remove this, used for debugging
             //moveOldestFrameToVirtualMemory(variableID, value);
 
