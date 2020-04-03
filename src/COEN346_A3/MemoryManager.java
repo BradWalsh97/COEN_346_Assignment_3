@@ -10,6 +10,7 @@ public class MemoryManager{
     private int usedMemory; //amount of free memory in RAM. If full, then must write to swap(VM)
     private ArrayList<Frame> RAM = new ArrayList();
     Semaphore fileSemaphore = new Semaphore(1); //binary semaphore for file access
+    Semaphore ramSemaphore = new Semaphore(1); //binary semaphore for ram access
     //todo: actually semaphore some shit
     MemoryManager(int memorySize){
         this.size = memorySize;
@@ -21,15 +22,22 @@ public class MemoryManager{
     public void memStore(int variableID, int value) throws IOException, InterruptedException {
         //first we check if the RAM is full
         if(usedMemory == size) {//ram is full
-            System.out.println("RAM is full!");
+            System.out.println("RAM is full!"); //todo: remove this, used for debugging
             //moveOldestFrameToVirtualMemory(variableID, value);
 
-            //if the ram is full we can just open the vm.txt and append the new variable to the end todo
+            //if the ram is full we can just open the vm.txt and append the new variable to the end
+            fileSemaphore.acquire();
+            File file = new File(Paths.get("vm.txt").toAbsolutePath().toString());
+            Writer output = new BufferedWriter(new FileWriter(file, true));
+            output.append(variableID + " " + value + " " + System.currentTimeMillis());
+            output.close();
+            fileSemaphore.release();
         }
         else { //there is space in the ram
             usedMemory++;
             //we have to find where we can put the new variable
             //if the id is -1 then we can add it there as a id of -1 means its empty/free
+            ramSemaphore.acquire();
             for (int i = 0; i < RAM.size(); i ++) {
                 if(RAM.get(i).getID() == -1) {//if that point is free
                     RAM.get(i).setID(variableID);
@@ -38,6 +46,7 @@ public class MemoryManager{
                     break; //todo: make sure this actually skips the rest of the loop (maybe use break)
                 }
             }
+            ramSemaphore.release();
         }
 
 
@@ -50,7 +59,7 @@ public class MemoryManager{
         int indexToSwap = 0;
         ArrayList<Frame> virtualMemory = new ArrayList<>();
         Frame tmpFrame = new Frame(-1, 0); //assign -1 as a temporary/invalid ID
-        fileSemaphore.acquire(); //stop others from reading and writing to the file
+        ramSemaphore.acquire(); //stop others from reading and writing to the file
         tmpSmallestAccessTime = RAM.get(0).getAccessTime();
         for (int i = 1; i < RAM.size(); i++) {
             if(RAM.get(i).getAccessTime() < tmpSmallestAccessTime){
@@ -59,11 +68,13 @@ public class MemoryManager{
                 tmpSmallestAccessTime = RAM.get(i).getAccessTime();
             }
         }
+        ramSemaphore.release();
 
         //now that we've gone through the entire RAM, we know the ID of what we need to swap and we've
         //stored it as a tmp frame. Now we can add the new variable to ram. Then we write the old one to vm.txt
 
         //Start by getting the input file and creating an array consisting of all the vm elements
+        fileSemaphore.acquire();
         File file = new File(Paths.get("vm.txt").toAbsolutePath().toString());
         /*BufferedReader in = new BufferedReader(new FileReader(file));
         //Read data from file and populate the virtual memory
@@ -83,9 +94,10 @@ public class MemoryManager{
 
         //finally, we store the virtual memory into the file
         */
-        Writer output = new BufferedWriter(new FileWriter("vm.txt", true));
+        Writer output = new BufferedWriter(new FileWriter(file, true));
         output.append(tmpFrame.ID + " " + tmpFrame.value + " " + tmpFrame.accessTime);
         output.close();
+        fileSemaphore.release();
 
         //now that the old variable is in the virtual memory, we can write the new variable to ram
         System.out.println("SWAP Variable " + varID + " with Variable " + tmpFrame.getID()); //todo: make sure these are the right values
@@ -100,19 +112,22 @@ public class MemoryManager{
 //            }
 //        }
     }
-    public void memFree(int variableID) throws IOException {
+    public void memFree(int variableID) throws IOException, InterruptedException {
         boolean erased = false;
-        //first we're going to look through the ram and see if the variable
+        //first we're going to look through the ram and see if the variable exists
+        ramSemaphore.acquire();
         for (int i = 0; i < RAM.size(); i++) {
-            if(RAM.get(i).getID() == variableID){
+            if(RAM.get(i).getID() == variableID){ //if tis there, erase (assign values of -1) the variable
                 RAM.get(i).setValue(-1);
                 RAM.get(i).setID(-1);
                 erased = true;
             }
         }
+        ramSemaphore.release();
         //if not in ram
         if (!erased){
             //now we have to check the disk
+            fileSemaphore.acquire();
             File file = new File(Paths.get("vm.txt").toAbsolutePath().toString());
             BufferedReader in = new BufferedReader(new FileReader(file));
             ArrayList<Frame> virtualMemory = new ArrayList<>();
@@ -140,6 +155,7 @@ public class MemoryManager{
                 output.append(f.ID + " " + f.value + " " + f.accessTime);
             }
             output.close();
+            fileSemaphore.release();
 
         }
         //if not in disk either
@@ -154,6 +170,7 @@ public class MemoryManager{
                 return f.getValue();
         }
         //if its not in the ram we must look for it in the vm.txt
+        fileSemaphore.acquire();
         File file = new File(Paths.get("vm.txt").toAbsolutePath().toString());
         BufferedReader in = new BufferedReader(new FileReader(file));
         ArrayList<Frame> virtualMemory = new ArrayList<>();
@@ -173,6 +190,7 @@ public class MemoryManager{
                 return f.getValue();
             }
         }
+        fileSemaphore.release(); //release it down here because we dont want the contents of vm.txt to change while without the array list changing
 
         //finally, if its not in ram or vm we return -1;
         return -1;
