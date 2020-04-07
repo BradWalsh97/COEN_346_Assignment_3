@@ -27,6 +27,17 @@ class sharedQueues {
     //This value will hold the system time at start of execution
     static long start;
 
+    static MemoryManager memoryManager;
+
+    static {
+        try {
+            memoryManager = new MemoryManager();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+
 }
 
 public class Main {
@@ -36,6 +47,8 @@ public class Main {
     static ArrayList<Command> commandList = new ArrayList<>();
 
     public static void main(String[] args) throws IOException {
+
+
 
         //A semaphore that only allows one core at a time to access certain areas
         Semaphore cpuLock = new Semaphore(1);
@@ -136,7 +149,7 @@ public class Main {
             this.name = name;
         }
 
-        private void oneRoundRobinRound(Process p){ //One round of execution
+        private void oneRoundRobinRound(Process p) throws IOException, InterruptedException { //One round of execution
 
             if (p.getRunTime() <= 3) {
 
@@ -189,23 +202,23 @@ public class Main {
 
         }
 
-        private void executeProcess(Process p){
+        private void executeProcess(Process p) throws IOException, InterruptedException {
             long executionStart = System.nanoTime();
-            MemoryManager memManager = new MemoryManager();
+
 
             while (System.nanoTime() - executionStart < 3000000){
 
                 Command command = sharedQueues.commandQueue.remove();
                 if (command.getCommandType() == CommandType.STORE){
-                    memManager.memStore(command.getCommandVariable(), command.getCommandValue());
+                    sharedQueues.memoryManager.memStore(command.getCommandVariable(), command.getCommandValue());
                 }
                 else if (command.getCommandType() == CommandType.LOOKUP){
-                    memManager.memLookup(command.getCommandVariable());
+                    sharedQueues.memoryManager.memLookup(command.getCommandVariable());
                 }
                 else if (command.getCommandType() == CommandType.RELEASE){
-                    memManager.memFree(command.getCommandVariable());
+                    sharedQueues.memoryManager.memFree(command.getCommandVariable());
                 }
-                sharedQueues.commandQueue.add(command);
+
 
             }
 
@@ -275,7 +288,13 @@ public class Main {
                         System.out.println(ex);
                     }
                     sem.release();
-                    oneRoundRobinRound(p);
+                    try {
+                        oneRoundRobinRound(p);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
 
                 } else if(sharedQueues.waitingQueue.isEmpty() && sharedQueues.readyQueue.isEmpty()) {
                     System.out.println(name + " No more processes.");
