@@ -13,10 +13,13 @@ import java.util.concurrent.Semaphore;
 
 import static java.lang.String.format;
 
+//TODO: Error checking on inputs for commands, memoryconfig, processes
+
 class sharedQueues {
 
     static Queue<Process> waitingQueue = new LinkedList<>();
     static Queue<Process> readyQueue = new LinkedList<>();
+    static Queue<Command> commandQueue = new LinkedList<>();
     static long start;
 
 }
@@ -24,24 +27,26 @@ class sharedQueues {
 public class Main {
 
     static ArrayList<Process> waitingList = new ArrayList<>();
+    static ArrayList<Command> commandList = new ArrayList<>();
 
     public static void main(String[] args) throws IOException {
 
         Semaphore cpuLock = new Semaphore(1);
 
-        //Start by getting the input file and creating an array consisting of all the light bulbs
-        File file = new File(Paths.get("input.txt").toAbsolutePath().toString());
-        BufferedReader in = new BufferedReader(new FileReader(file));
-        int processCount = 1; //starts at 1 since scheduler is Considered p0
+        //Start by getting the input file for processes
+        File processesFile = new File(Paths.get("processes.txt").toAbsolutePath().toString());
+        BufferedReader processesInput = new BufferedReader(new FileReader(processesFile));
+        int processCount = 2; //starts at 2 since schedulers are Considered p0 and p1
 
         //Read data from file and populate the waitingQueue
         String[] splitInputArray;
-        String str;
+        String processesString;
 
         //start by creating a process object for each item in the text file and
         //provide the info for that process
-        while ((str = in.readLine()) != null) {
-            splitInputArray = str.split("\\s", 2); //split arrival time and burst time
+        processesInput.readLine(); //Skip the first line
+        while ((processesString = processesInput.readLine()) != null) {
+            splitInputArray = processesString.split("\\s", 2); //split arrival time and burst time
             waitingList.add(
                     new Process(processCount,
                             Integer.parseInt(splitInputArray[0].trim()),
@@ -50,7 +55,30 @@ public class Main {
             processCount++;
         }
 
-        Collections.sort(waitingList, new SortByArrival());
+        File commandsFile = new File(Paths.get("commands.txt").toAbsolutePath().toString());
+        BufferedReader commandsInput = new BufferedReader(new FileReader(commandsFile));
+
+        String[] commandsArray;
+        String commandsString;
+
+        while ((commandsString = commandsInput.readLine()) != null) {
+            commandsArray = commandsString.split("\\s", 3); //split arrival time and burst time
+            if (commandsArray.length < 3) {
+                commandList.add(
+                        new Command(
+                                Integer.parseInt(commandsArray[1].trim()), //The variable the command is dealing with
+                                commandsArray[0].trim())); //The type of command
+            }
+            else {
+                commandList.add(
+                        new Command(
+                                Integer.parseInt(commandsArray[1].trim()), //The variable the command is dealing with
+                                Integer.parseInt(commandsArray[2].trim()), //The value the command is dealing with, if it exists
+                                commandsArray[0].trim())); //The type of command
+            }
+        }
+
+        Collections.sort(waitingList, new SortByArrival()); //Sort the temporary waiting list by arrival time (earliest first)
 
         //print all processes in waiting queue
         System.out.println("=========Processes=========");
@@ -64,6 +92,12 @@ public class Main {
         for (int m = 0; m < waitingList.size(); m++){
 
             sharedQueues.waitingQueue.add(waitingList.get(m));
+
+        }
+
+        for (int m = 0; m < commandList.size(); m++){
+
+            sharedQueues.commandQueue.add(commandList.get(m));
 
         }
 
@@ -143,30 +177,52 @@ public class Main {
         }
 
         private void executeProcess(Process p){
+            long executionStart = System.nanoTime();
+            MemoryManager memManager = new MemoryManager();
 
-            try {
-                Thread.sleep(3000);
-            } catch (InterruptedException ex) {
-                System.out.println(ex);
+            while (executionStart - sharedQueues.start < 3000000){
+
+                Command command = sharedQueues.commandQueue.remove();
+                if (command.getCommandType() == CommandType.STORE){
+                    memManager.memStore(command.getCommandVariable(), command.getCommandValue());
+                }
+                else if (command.getCommandType() == CommandType.LOOKUP){
+                    memManager.memLookup(command.getCommandVariable());
+                }
+                else if (command.getCommandType() == CommandType.RELEASE){
+                    memManager.memFree(command.getCommandVariable());
+                }
+                sharedQueues.commandQueue.add(command);
+
             }
+
             p.setRunTime(p.getRunTime()-3);
 
         }
 
         private void executeProcessComplete(Process p){
+            long executionStart = System.nanoTime();
+            MemoryManager memManager = new MemoryManager();
 
-            try {
-                Thread.sleep(3000);
-            } catch (InterruptedException ex) {
-                System.out.println(ex);
+            while (executionStart - sharedQueues.start < (p.getRunTime() * 1000000000)){
+
+                Command command = sharedQueues.commandQueue.remove();
+                if (command.getCommandType() == CommandType.STORE){
+                    memManager.memStore(command.getCommandVariable(), command.getCommandValue());
+                }
+                else if (command.getCommandType() == CommandType.LOOKUP){
+                    memManager.memLookup(command.getCommandVariable());
+                }
+                else if (command.getCommandType() == CommandType.RELEASE){
+                    memManager.memFree(command.getCommandVariable());
+                }
+                sharedQueues.commandQueue.add(command);
+
             }
+
             p.setRunTime(0);
 
         }
-
-
-
-
 
         @Override
         public void run() {
@@ -176,12 +232,7 @@ public class Main {
 
             while (true) {
 
-//                System.out.println(name + " Arrival time of first process = " + Shared.waitingQueue.peek().getArrivalTime());
-//                System.out.println(name + " Current time / 1000 = " + getCurrentTime()/1000);
-
                 if (!sharedQueues.waitingQueue.isEmpty() && sharedQueues.waitingQueue.peek().getArrivalTime() <= (getCurrentTime()/1000)) {//If there are ready processes in the arrival/waiting queue, add them to the ready queue
-
-//                    System.out.println(name + " " + Shared.waitingQueue.peek().getArrivalTime() + "<=" + (getCurrentTime()/1000));
 
                     Process p = new Process(0,0,0);
 
@@ -198,8 +249,6 @@ public class Main {
                     }
                     sem.release();
 
-
-
                 } else if (!sharedQueues.readyQueue.isEmpty()) {
 
                     Process p = new Process(0,0,0);
@@ -213,18 +262,13 @@ public class Main {
                     sem.release();
                     oneRoundRobinRound(p);
 
-
                 } else if(sharedQueues.waitingQueue.isEmpty() && sharedQueues.readyQueue.isEmpty()) {
                     System.out.println(name + " No more processes.");
                     break;
                 } else {
                     //Keep looping
                 }
-
-
             }//end round robin
-
-
         }
     }
 }
