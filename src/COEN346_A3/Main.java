@@ -208,25 +208,33 @@ public class Main {
 
             while (System.nanoTime() - executionStart < 3000000){
 
-                Command command = sharedQueues.commandQueue.remove();
-                if (command.getCommandType() == CommandType.STORE){
-                    sharedQueues.memoryManager.memStore(command.getCommandVariable(), command.getCommandValue());
-                }
-                else if (command.getCommandType() == CommandType.LOOKUP){
-                    sharedQueues.memoryManager.memLookup(command.getCommandVariable());
-                }
-                else if (command.getCommandType() == CommandType.RELEASE){
-                    sharedQueues.memoryManager.memFree(command.getCommandVariable());
+                if(!sharedQueues.commandQueue.isEmpty()) {
+
+                    Command command = sharedQueues.commandQueue.remove();
+
+                    if (command.getCommandType() == CommandType.STORE) {
+                        System.out.println("STORE: " + command.getCommandVariable() + " " + command.getCommandValue());
+                        sharedQueues.memoryManager.memStore(command.getCommandVariable(), command.getCommandValue());
+                    } else if (command.getCommandType() == CommandType.LOOKUP) {
+                        int lookupValue = sharedQueues.memoryManager.memLookup(command.getCommandVariable());
+                        System.out.println("LOOKUP: Variable: " + command.getCommandVariable() + " Value: " + lookupValue);
+//                        sharedQueues.memoryManager.memLookup(command.getCommandVariable());
+                    } else if (command.getCommandType() == CommandType.RELEASE) {
+                        System.out.println("RELEASE: " + command.getCommandVariable());
+                        sharedQueues.memoryManager.memFree(command.getCommandVariable());
+                    }
+
+                    Thread.sleep(3000);
                 }
 
-
+                else {Thread.sleep(3000);}
             }
 
             p.setRunTime(p.getRunTime()-3);
 
         }
 
-        private void executeProcessComplete(Process p){
+        private void executeProcessComplete(Process p) throws IOException, InterruptedException {
 //            long executionStart = System.nanoTime();
 //            MemoryManager memManager = new MemoryManager();
 //
@@ -246,7 +254,9 @@ public class Main {
 //
 //            }
 //
-//            p.setRunTime(0);
+
+            Thread.sleep(Double.valueOf(p.getRunTime()*1000).longValue());
+            p.setRunTime(0);
 
 
 
