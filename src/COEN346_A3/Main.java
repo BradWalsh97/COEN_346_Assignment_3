@@ -205,8 +205,37 @@ public class Main {
         private void executeProcess(Process p) throws IOException, InterruptedException {
             long executionStart = System.nanoTime();
 
+            while (true){
 
-            while (System.nanoTime() - executionStart < 3000000){
+                if(!sharedQueues.commandQueue.isEmpty() && ((System.nanoTime() - executionStart) / 1000000) < 2000) {
+
+                    Command command = sharedQueues.commandQueue.remove();
+
+                    if (command.getCommandType() == CommandType.STORE) {
+                        System.out.println("STORE: " + command.getCommandVariable() + " " + command.getCommandValue());
+                        sharedQueues.memoryManager.memStore(command.getCommandVariable(), command.getCommandValue());
+                        Thread.sleep(1250);
+                    } else if (command.getCommandType() == CommandType.LOOKUP) {
+                        int lookupValue = sharedQueues.memoryManager.memLookup(command.getCommandVariable());
+                        System.out.println("LOOKUP: Variable: " + command.getCommandVariable() + " Value: " + lookupValue);
+                        Thread.sleep(1250);
+                    } else if (command.getCommandType() == CommandType.RELEASE) {
+                        System.out.println("RELEASE: " + command.getCommandVariable());
+                        sharedQueues.memoryManager.memFree(command.getCommandVariable());
+                        Thread.sleep(1250);
+                    }
+
+                } else if ((System.nanoTime() - executionStart) / 1000000 < 3000){
+                    Thread.sleep(15);
+                } else {
+                    p.setRunTime(p.getRunTime()-3);
+                    break;
+                }
+            }
+        }
+
+        private void executeProcessComplete(Process p) throws IOException, InterruptedException {
+            long executionStart = System.nanoTime();
 
                 if(!sharedQueues.commandQueue.isEmpty()) {
 
@@ -218,47 +247,21 @@ public class Main {
                     } else if (command.getCommandType() == CommandType.LOOKUP) {
                         int lookupValue = sharedQueues.memoryManager.memLookup(command.getCommandVariable());
                         System.out.println("LOOKUP: Variable: " + command.getCommandVariable() + " Value: " + lookupValue);
-//                        sharedQueues.memoryManager.memLookup(command.getCommandVariable());
                     } else if (command.getCommandType() == CommandType.RELEASE) {
                         System.out.println("RELEASE: " + command.getCommandVariable());
                         sharedQueues.memoryManager.memFree(command.getCommandVariable());
                     }
-
-                    Thread.sleep(3000);
                 }
 
-                else {Thread.sleep(3000);}
-            }
+                    while (true) {
 
-            p.setRunTime(p.getRunTime()-3);
-
-        }
-
-        private void executeProcessComplete(Process p) throws IOException, InterruptedException {
-//            long executionStart = System.nanoTime();
-//            MemoryManager memManager = new MemoryManager();
-//
-//            while (executionStart - sharedQueues.start < (p.getRunTime() * 1000000000)){
-//
-//                Command command = sharedQueues.commandQueue.remove();
-//                if (command.getCommandType() == CommandType.STORE){
-//                    memManager.memStore(command.getCommandVariable(), command.getCommandValue());
-//                }
-//                else if (command.getCommandType() == CommandType.LOOKUP){
-//                    memManager.memLookup(command.getCommandVariable());
-//                }
-//                else if (command.getCommandType() == CommandType.RELEASE){
-//                    memManager.memFree(command.getCommandVariable());
-//                }
-//                sharedQueues.commandQueue.add(command);
-//
-//            }
-//
-
-            Thread.sleep(Double.valueOf(p.getRunTime()*1000).longValue());
-            p.setRunTime(0);
-
-
+                        if ((System.nanoTime() - executionStart) / 1000000 < p.getRunTime() * 1000) {
+                            Thread.sleep(15);
+                        } else {
+                            p.setRunTime(0);
+                            break;
+                        }
+                    }
 
         }
 
@@ -293,7 +296,12 @@ public class Main {
 
                     try {
                         sem.acquire();
-                        p = sharedQueues.readyQueue.remove();
+                        if (!sharedQueues.readyQueue.isEmpty()) {
+
+                            p = sharedQueues.readyQueue.remove();
+
+                        }
+                        else {continue;}
                     } catch (InterruptedException ex) {
                         System.out.println(ex);
                     }

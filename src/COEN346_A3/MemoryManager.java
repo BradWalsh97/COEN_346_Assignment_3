@@ -161,6 +161,7 @@ public class MemoryManager{
             for (int i = 0; i < virtualMemory.size(); i++) {
                 if(virtualMemory.get(i).getID() == variableID){
                     virtualMemory.remove(i);
+                    erased = true;
                     break;
                 }
             }

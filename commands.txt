@@ -7,3 +7,12 @@ Release 1
 Store 1 8
 Lookup 1
 Lookup 2
+Store 6 5
+Store 7 3
+Store 8 7
+Lookup 4
+Lookup 1
+Release 6
+Store 9 8
+Lookup 7
+Lookup 2
