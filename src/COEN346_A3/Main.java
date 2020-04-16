@@ -7,6 +7,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.ThreadLocalRandom;
 
 import static java.lang.String.format;
 
@@ -47,7 +48,6 @@ public class Main {
 
 //        PrintStream outs = new PrintStream(new FileOutputStream("output.txt", false));
 //        System.setOut(outs);
-
 
         //A semaphore that only allows one core at a time to access certain areas
         Semaphore cpuLock = new Semaphore(1);
@@ -179,17 +179,17 @@ public class Main {
         }
 
         private void printProcessStatus(Process p){
-            System.out.println(name + ": Clock: " + getCurrentTime() + ", Process "
+            System.out.println("Clock: " + getCurrentTime() + ", Process "
                     + p.getPID() + ", " + p.getStatus()
                     + ", remaining time " + format("%.3f",p.getRunTime()));
         }
 
         private void printProcessInfo(Process p){
-            System.out.print(name + ": Clock: " + getCurrentTime() + ", Process "
+            System.out.print("Clock: " + getCurrentTime() + ", Process "
                     + p.getPID() + ", ");
         }
 
-        private long getCurrentTime(){
+        static long getCurrentTime(){
             long seconds = (System.nanoTime() - sharedQueues.start) / 1000000;
             return seconds;
 
@@ -213,20 +213,23 @@ public class Main {
                     Command command = sharedQueues.commandQueue.remove();
 
                     if (command.getCommandType() == CommandType.STORE) {
+                        Thread.sleep(ThreadLocalRandom.current().nextLong(100, 300));
                         printProcessInfo(p);
                         System.out.println("STORE: " + command.getCommandVariable() + " " + command.getCommandValue());
                         sharedQueues.memoryManager.memStore(command.getCommandVariable(), command.getCommandValue());
-                        Thread.sleep(1250);
+                        Thread.sleep(ThreadLocalRandom.current().nextLong(700, 1000));
                     } else if (command.getCommandType() == CommandType.LOOKUP) {
                         int lookupValue = sharedQueues.memoryManager.memLookup(command.getCommandVariable());
+                        Thread.sleep(ThreadLocalRandom.current().nextLong(100, 300));
                         printProcessInfo(p);
                         System.out.println("LOOKUP: Variable: " + command.getCommandVariable() + " Value: " + lookupValue);
-                        Thread.sleep(1250);
+                        Thread.sleep(ThreadLocalRandom.current().nextLong(700, 1000));
                     } else if (command.getCommandType() == CommandType.RELEASE) {
+                        Thread.sleep(ThreadLocalRandom.current().nextLong(100, 300));
                         printProcessInfo(p);
                         System.out.println("RELEASE: " + command.getCommandVariable());
                         sharedQueues.memoryManager.memFree(command.getCommandVariable());
-                        Thread.sleep(1250);
+                        Thread.sleep(ThreadLocalRandom.current().nextLong(700, 1000));
                     }
 
                 } else if ((System.nanoTime() - executionStart) / 1000000 < 3000){
@@ -286,7 +289,7 @@ public class Main {
 
                     try {
                         sem.acquire();
-                        if (sharedQueues.waitingQueue.peek().getArrivalTime() > getCurrentTime()/1000){}
+                        if (sharedQueues.waitingQueue.peek().getArrivalTime()*1000 > getCurrentTime()){}
                         else {
                             p = sharedQueues.waitingQueue.remove();
                             sharedQueues.readyQueue.add(p);
@@ -308,7 +311,9 @@ public class Main {
                             p = sharedQueues.readyQueue.remove();
 
                         }
-                        else {continue;}
+                        else {
+                            sem.release();
+                            continue;}
                     } catch (InterruptedException ex) {
                         System.out.println(ex);
                     }

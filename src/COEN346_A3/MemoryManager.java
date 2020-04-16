@@ -5,6 +5,9 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.concurrent.Semaphore;
 
+import static COEN346_A3.Main.Scheduler.getCurrentTime;
+import static java.lang.String.format;
+
 public class MemoryManager{
     private int memorySize; //size of the "memory module"
     private int usedMemory; //amount of free memory in RAM. If full, then must write to swap(VM)
@@ -116,7 +119,10 @@ public class MemoryManager{
         fileSemaphore.release();
 
         //now that the old variable is in the virtual memory, we can write the new variable to ram
-        System.out.println("SWAP Variable " + varID + " with Variable " + tmpFrame.ID); //todo: make sure these are the right values
+        System.out.println("Clock: " + getCurrentTime() + ", Memory Manager, SWAP Variable " + varID + " with Variable " + tmpFrame.ID);
+
+//        System.out.println("SWAP Variable " + varID + " with Variable " + tmpFrame.ID); //todo: make sure these are the right values
+//        Main.Scheduler.getCurrentTime();
         RAM.get(indexToSwap).setID(varID);
         RAM.get(indexToSwap).setValue(value);
         RAM.get(indexToSwap).setAccessTime(System.currentTimeMillis());
@@ -177,7 +183,8 @@ public class MemoryManager{
         }
         //if not in disk either
         if(!erased){
-            System.out.println("Value could not be found");//todo: Change this to the correct output
+            System.out.println("Clock: " + getCurrentTime() + ", Memory Manager, the value is not in Main Memory or on Disk");
+//            System.out.println("Value could not be found");//todo: Change this to the correct output
         }
     }
     public int memLookup(int variableID) throws IOException, InterruptedException {
@@ -206,7 +213,8 @@ public class MemoryManager{
             if(f.getID() == variableID) {
                 fileSemaphore.release(); //release it so moveOldestFrame can acquire it
                 moveOldestFrameToVirtualMemory(variableID, f.getValue());
-                System.out.println("LOOKUP: The value is in Virtual Memory");
+//                System.out.println("Clock: " + getCurrentTime() + ", Memory Manager, the variable is on Disk");
+//                System.out.println("LOOKUP: The value is in Virtual Memory");
                 return f.getValue();
 
             }
@@ -214,7 +222,8 @@ public class MemoryManager{
         fileSemaphore.release(); //release it down here because we dont want the contents of vm.txt to change while without the array list changing
 
         //finally, if its not in ram or vm we return -1;
-        System.out.println("LOOKUP: The value is NOWHERE TO BE FOUND");
+//        System.out.println("Clock: " + getCurrentTime() + ", Memory Manager, the variable is not in Main Memory or on Disk");
+//        System.out.println("LOOKUP: The value is NOWHERE TO BE FOUND");
         return -1;
 
 
