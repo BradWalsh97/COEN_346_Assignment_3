@@ -1,0 +1,85 @@
+=========Processes=========
+Process: 2 Arrival Time: 1 Run Time: 17.0
+Process: 3 Arrival Time: 7 Run Time: 18.0
+Process: 4 Arrival Time: 8 Run Time: 15.0
+================Process Execution=================
+1000
+1000
+cpu1: Clock: 1001, Process 2, Started, remaining time 17.000
+cpu1: Clock: 1116, Process 2, Resumed, remaining time 17.000
+STORE: 1 5
+STORE: 2 3
+cpu1: Clock: 4117, Process 2, Paused, remaining time 14.000
+cpu1: Clock: 4118, Process 2, Resumed, remaining time 14.000
+STORE: 3 7
+RAM is full!
+Holding Variable 1 and Variable 2
+SWAP Variable 3 with Variable 1
+LOOKUP: The value is in Virtual Memory
+LOOKUP: Variable: 3 Value: 7
+cpu0: Clock: 7000, Process 3, Started, remaining time 18.000
+cpu0: Clock: 7000, Process 3, Resumed, remaining time 18.000
+LOOKUP: Variable: 2 Value: 3
+cpu1: Clock: 7125, Process 2, Paused, remaining time 11.000
+cpu1: Clock: 7126, Process 2, Resumed, remaining time 11.000
+RELEASE: 1
+STORE: 1 8
+RAM is full!
+Holding Variable 3 and Variable 2
+SWAP Variable 1 with Variable 2
+LOOKUP: The value is in Virtual Memory
+LOOKUP: Variable: 1 Value: 8
+cpu0: Clock: 10001, Process 3, Paused, remaining time 15.000
+cpu0: Clock: 10002, Process 3, Resumed, remaining time 15.000
+SWAP Variable 2 with Variable 3
+LOOKUP: The value is in Virtual Memory
+LOOKUP: Variable: 2 Value: 3
+cpu1: Clock: 10131, Process 2, Paused, remaining time 8.000
+cpu1: Clock: 10132, Process 4, Started, remaining time 15.000
+cpu1: Clock: 10133, Process 4, Resumed, remaining time 15.000
+STORE: 6 5
+RAM is full!
+Holding Variable 2 and Variable 1
+STORE: 7 3
+RAM is full!
+Holding Variable 2 and Variable 1
+STORE: 8 7
+RAM is full!
+Holding Variable 2 and Variable 1
+cpu0: Clock: 13005, Process 3, Paused, remaining time 12.000
+cpu0: Clock: 13006, Process 2, Resumed, remaining time 8.000
+LOOKUP: The value is NOWHERE TO BE FOUND
+LOOKUP: Variable: 4 Value: -1
+cpu1: Clock: 13148, Process 4, Paused, remaining time 12.000
+cpu1: Clock: 13149, Process 3, Resumed, remaining time 12.000
+LOOKUP: Variable: 1 Value: 8
+RELEASE: 6
+STORE: 9 8
+RAM is full!
+Holding Variable 2 and Variable 1
+cpu0: Clock: 16012, Process 2, Paused, remaining time 5.000
+cpu0: Clock: 16012, Process 4, Resumed, remaining time 12.000
+SWAP Variable 7 with Variable 1
+LOOKUP: The value is in Virtual Memory
+LOOKUP: Variable: 7 Value: 3
+cpu1: Clock: 16163, Process 3, Paused, remaining time 9.000
+cpu1: Clock: 16164, Process 2, Resumed, remaining time 5.000
+LOOKUP: Variable: 2 Value: 3
+cpu0: Clock: 19019, Process 4, Paused, remaining time 9.000
+cpu0: Clock: 19020, Process 3, Resumed, remaining time 9.000
+cpu1: Clock: 19167, Process 2, Paused, remaining time 2.000
+cpu1: Clock: 19168, Process 4, Resumed, remaining time 9.000
+cpu0: Clock: 22025, Process 3, Paused, remaining time 6.000
+cpu0: Clock: 22025, Process 2, Resumed, remaining time 2.000
+cpu1: Clock: 22176, Process 4, Paused, remaining time 6.000
+cpu1: Clock: 22177, Process 3, Resumed, remaining time 6.000
+cpu0: Clock: 24034, Process 2, Finished, remaining time 0.000
+cpu0: Clock: 24035, Process 4, Resumed, remaining time 6.000
+cpu1: Clock: 25183, Process 3, Paused, remaining time 3.000
+cpu1: Clock: 25183, Process 3, Resumed, remaining time 3.000
+cpu0: Clock: 27042, Process 4, Paused, remaining time 3.000
+cpu0: Clock: 27043, Process 4, Resumed, remaining time 3.000
+cpu1: Clock: 28190, Process 3, Finished, remaining time 0.000
+cpu1 No more processes.
+cpu0: Clock: 30050, Process 4, Finished, remaining time 0.000
+cpu0 No more processes.
