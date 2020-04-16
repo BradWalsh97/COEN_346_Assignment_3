@@ -45,8 +45,8 @@ public class Main {
 
     public static void main(String[] args) throws IOException {
 
-        PrintStream outs = new PrintStream(new FileOutputStream("output.txt", false));
-        System.setOut(outs);
+//        PrintStream outs = new PrintStream(new FileOutputStream("output.txt", false));
+//        System.setOut(outs);
 
 
         //A semaphore that only allows one core at a time to access certain areas
@@ -179,11 +179,14 @@ public class Main {
         }
 
         private void printProcessStatus(Process p){
-
             System.out.println(name + ": Clock: " + getCurrentTime() + ", Process "
                     + p.getPID() + ", " + p.getStatus()
                     + ", remaining time " + format("%.3f",p.getRunTime()));
+        }
 
+        private void printProcessInfo(Process p){
+            System.out.print(name + ": Clock: " + getCurrentTime() + ", Process "
+                    + p.getPID() + ", ");
         }
 
         private long getCurrentTime(){
@@ -193,7 +196,6 @@ public class Main {
         }
 
         private long setCurrentTime(){
-
             sharedQueues.start = System.nanoTime() - (sharedQueues.waitingQueue.peek().getArrivalTime()*1000000000); //should give you arrival time
             //TODO: Add a multiplier value to speed up execution
             long seconds = (System.nanoTime() - sharedQueues.start) / 1000000;
@@ -211,14 +213,17 @@ public class Main {
                     Command command = sharedQueues.commandQueue.remove();
 
                     if (command.getCommandType() == CommandType.STORE) {
+                        printProcessInfo(p);
                         System.out.println("STORE: " + command.getCommandVariable() + " " + command.getCommandValue());
                         sharedQueues.memoryManager.memStore(command.getCommandVariable(), command.getCommandValue());
                         Thread.sleep(1250);
                     } else if (command.getCommandType() == CommandType.LOOKUP) {
                         int lookupValue = sharedQueues.memoryManager.memLookup(command.getCommandVariable());
+                        printProcessInfo(p);
                         System.out.println("LOOKUP: Variable: " + command.getCommandVariable() + " Value: " + lookupValue);
                         Thread.sleep(1250);
                     } else if (command.getCommandType() == CommandType.RELEASE) {
+                        printProcessInfo(p);
                         System.out.println("RELEASE: " + command.getCommandVariable());
                         sharedQueues.memoryManager.memFree(command.getCommandVariable());
                         Thread.sleep(1250);
@@ -241,12 +246,15 @@ public class Main {
                     Command command = sharedQueues.commandQueue.remove();
 
                     if (command.getCommandType() == CommandType.STORE) {
+                        printProcessInfo(p);
                         System.out.println("STORE: " + command.getCommandVariable() + " " + command.getCommandValue());
                         sharedQueues.memoryManager.memStore(command.getCommandVariable(), command.getCommandValue());
                     } else if (command.getCommandType() == CommandType.LOOKUP) {
                         int lookupValue = sharedQueues.memoryManager.memLookup(command.getCommandVariable());
+                        printProcessInfo(p);
                         System.out.println("LOOKUP: Variable: " + command.getCommandVariable() + " Value: " + lookupValue);
                     } else if (command.getCommandType() == CommandType.RELEASE) {
+                        printProcessInfo(p);
                         System.out.println("RELEASE: " + command.getCommandVariable());
                         sharedQueues.memoryManager.memFree(command.getCommandVariable());
                     }
@@ -267,8 +275,8 @@ public class Main {
         @Override
         public void run() {
 
-
-            System.out.println(setCurrentTime());
+            if(name.equals("cpu0"))
+                System.out.println(setCurrentTime());
 
             while (true) {
 
