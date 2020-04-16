@@ -32,8 +32,8 @@ public class MemoryManager{
     public void memStore(int variableID, int value) throws IOException, InterruptedException {
         //first we check if the RAM is full
         if(usedMemory == memorySize) {//ram is full
-            System.out.println("RAM is full!"); //todo: remove this, used for debugging
-            System.out.println("Holding Variable " + RAM.get(0).getID() + " and Variable " + RAM.get(1).getID());
+            //System.out.println("RAM is full!"); //used for debugging
+            //System.out.println("Holding Variable " + RAM.get(0).getID() + " and Variable " + RAM.get(1).getID()); //used for debugging
 //            moveOldestFrameToVirtualMemory(variableID, value);
 
             //if the ram is full we can just open the vm.txt and append the new variable to the end
