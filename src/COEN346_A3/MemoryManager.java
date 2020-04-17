@@ -14,7 +14,6 @@ public class MemoryManager{
     private ArrayList<Frame> RAM = new ArrayList();
     Semaphore fileSemaphore = new Semaphore(1); //binary semaphore for file access
     Semaphore ramSemaphore = new Semaphore(1); //binary semaphore for ram access
-    //todo: actually semaphore some shit
 
     MemoryManager() throws IOException {
         File file = new File(Paths.get("memconfig.txt").toAbsolutePath().toString());
@@ -57,7 +56,7 @@ public class MemoryManager{
                     RAM.get(i).setID(variableID);
                     RAM.get(i).setValue(value);
                     RAM.get(i).setAccessTime(System.currentTimeMillis());
-                    break; //todo: make sure this actually skips the rest of the loop (maybe use break)
+                    break;
                 }
             }
             ramSemaphore.release();
@@ -121,7 +120,7 @@ public class MemoryManager{
         //now that the old variable is in the virtual memory, we can write the new variable to ram
         System.out.println("Clock: " + getCurrentTime() + ", Memory Manager, SWAP Variable " + varID + " with Variable " + tmpFrame.ID);
 
-//        System.out.println("SWAP Variable " + varID + " with Variable " + tmpFrame.ID); //todo: make sure these are the right values
+//        System.out.println("SWAP Variable " + varID + " with Variable " + tmpFrame.ID);
 //        Main.Scheduler.getCurrentTime();
         RAM.get(indexToSwap).setID(varID);
         RAM.get(indexToSwap).setValue(value);
@@ -184,7 +183,7 @@ public class MemoryManager{
         //if not in disk either
         if(!erased){
             System.out.println("Clock: " + getCurrentTime() + ", Memory Manager, the value is not in Main Memory or on Disk");
-//            System.out.println("Value could not be found");//todo: Change this to the correct output
+//            System.out.println("Value could not be found");
         }
     }
     public int memLookup(int variableID) throws IOException, InterruptedException {
@@ -238,7 +237,7 @@ class Frame{
     Frame(int id, int value){
         this.ID = id;
         this.value = value;
-        this.accessTime = System.currentTimeMillis(); //todo: does this make sense
+        this.accessTime = System.currentTimeMillis();
     }
     Frame(int id, int value, long accessTime){
         this.ID = id;

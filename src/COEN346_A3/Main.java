@@ -11,8 +11,6 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import static java.lang.String.format;
 
-//TODO: Error checking on inputs for commands, memoryconfig, processes
-
 class sharedQueues {
 
     //These queues are accessible by the two CPU cores and contain the processes to be run
@@ -200,7 +198,6 @@ public class Main {
 
         private long setCurrentTime(){
             sharedQueues.start = System.nanoTime() - (sharedQueues.waitingQueue.peek().getArrivalTime()*1000000000); //should give you arrival time
-            //TODO: Add a multiplier value to speed up execution
             long seconds = (System.nanoTime() - sharedQueues.start) / 1000000;
             return seconds;
 
