@@ -46,8 +46,11 @@ public class Main {
 
     public static void main(String[] args) throws IOException {
 
-//        PrintStream outs = new PrintStream(new FileOutputStream("output.txt", false));
-//        System.setOut(outs);
+        /** Comment out these two lines to see the output live in the console*/
+//            PrintStream outs = new PrintStream(new FileOutputStream("output.txt", false));
+//            System.setOut(outs);
+        /** Otherwise the output will be written to the output.txt upon completion of execution */
+
 
         //A semaphore that only allows one core at a time to access certain areas
         Semaphore cpuLock = new Semaphore(1);
@@ -249,14 +252,17 @@ public class Main {
                     Command command = sharedQueues.commandQueue.remove();
 
                     if (command.getCommandType() == CommandType.STORE) {
+                        Thread.sleep(ThreadLocalRandom.current().nextLong(100, 300));
                         printProcessInfo(p);
                         System.out.println("STORE: " + command.getCommandVariable() + " " + command.getCommandValue());
                         sharedQueues.memoryManager.memStore(command.getCommandVariable(), command.getCommandValue());
                     } else if (command.getCommandType() == CommandType.LOOKUP) {
                         int lookupValue = sharedQueues.memoryManager.memLookup(command.getCommandVariable());
+                        Thread.sleep(ThreadLocalRandom.current().nextLong(100, 300));
                         printProcessInfo(p);
                         System.out.println("LOOKUP: Variable: " + command.getCommandVariable() + " Value: " + lookupValue);
                     } else if (command.getCommandType() == CommandType.RELEASE) {
+                        Thread.sleep(ThreadLocalRandom.current().nextLong(100, 300));
                         printProcessInfo(p);
                         System.out.println("RELEASE: " + command.getCommandVariable());
                         sharedQueues.memoryManager.memFree(command.getCommandVariable());
@@ -278,8 +284,9 @@ public class Main {
         @Override
         public void run() {
 
-            if(name.equals("cpu0"))
-                System.out.println(setCurrentTime());
+            if(name.equals("cpu0")) {
+                setCurrentTime();
+            }
 
             while (true) {
 
