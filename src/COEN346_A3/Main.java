@@ -45,8 +45,8 @@ public class Main {
     public static void main(String[] args) throws IOException {
 
         /** Comment out these two lines to see the output live in the console*/
-//            PrintStream outs = new PrintStream(new FileOutputStream("output.txt", false));
-//            System.setOut(outs);
+            PrintStream outs = new PrintStream(new FileOutputStream("output.txt", false));
+            System.setOut(outs);
         /** Otherwise the output will be written to the output.txt upon completion of execution */
 
 

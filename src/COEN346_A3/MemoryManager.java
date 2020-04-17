@@ -120,18 +120,10 @@ public class MemoryManager{
         //now that the old variable is in the virtual memory, we can write the new variable to ram
         System.out.println("Clock: " + getCurrentTime() + ", Memory Manager, SWAP Variable " + varID + " with Variable " + tmpFrame.ID);
 
-//        System.out.println("SWAP Variable " + varID + " with Variable " + tmpFrame.ID);
-//        Main.Scheduler.getCurrentTime();
         RAM.get(indexToSwap).setID(varID);
         RAM.get(indexToSwap).setValue(value);
         RAM.get(indexToSwap).setAccessTime(System.currentTimeMillis());
 
-//        for (Frame f: RAM) {
-//            if(f.getAccessTime() < tmpSmallestAccessTime){
-//                tmpFrame = f;
-//                tmpSmallestAccessTime = f.getAccessTime();
-//            }
-//        }
     }
     public void memFree(int variableID) throws IOException, InterruptedException {
         boolean erased = false;
